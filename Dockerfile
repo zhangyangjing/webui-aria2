@@ -4,7 +4,9 @@ FROM debian:8
 RUN groupadd -r dummy && useradd -r -g dummy dummy -u 1000
 
 # webui + aria2
-RUN apt-get update \
+RUN sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list \
+    && sed -i 's|security.debian.org|mirrors.ustc.edu.cn/debian-security|g' /etc/apt/sources.list \
+    && apt-get update \
 	&& apt-get install -y aria2 busybox curl unzip \
 	&& rm -rf /var/lib/apt/lists/*
 
@@ -23,7 +25,7 @@ RUN GITHUB_REPO="https://github.com/mattn/goreman" \
   && unzip goreman.zip && mv /goreman /usr/local/bin/goreman && rm -R goreman*
 
 # goreman setup
-RUN echo "web: gosu dummy /bin/busybox httpd -f -p 8080 -h /webui-aria2\nbackend: gosu dummy /usr/bin/aria2c --enable-rpc --rpc-listen-all --dir=/data" > Procfile
+RUN echo "web: gosu dummy /bin/busybox httpd -f -p 8080 -h /webui-aria2\nbackend: gosu dummy /usr/bin/aria2c --conf-path=/webui-aria2/aria2.conf" > Procfile
 
 # aria2 downloads directory
 VOLUME /data
